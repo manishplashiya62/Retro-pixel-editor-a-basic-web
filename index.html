@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Pixel Art Grid Editor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <i data-lucide="palette" class="logo-icon"></i>
+                <h1>PIXEL<span>CRAFT</span></h1>
+            </div>
+            <div class="header-tagline">8-BIT RETRO GRID EDITOR</div>
+            <div class="header-actions">
+                <button id="btn-shortcuts-toggle" class="icon-btn-text" title="Keyboard Shortcuts">
+                    <i data-lucide="keyboard"></i>
+                    <span>Shortcuts</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <!-- Left Sidebar: Tools & Grid Config -->
+            <aside class="sidebar tools-panel">
+                <div class="panel-section">
+                    <h2 class="section-title">Grid Configuration</h2>
+                    <div class="grid-presets">
+                        <button class="grid-size-btn" data-size="8">8x8</button>
+                        <button class="grid-size-btn active" data-size="16">16x16</button>
+                        <button class="grid-size-btn" data-size="32">32x32</button>
+                        <button class="grid-size-btn" data-size="64">64x64</button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="section-title">Drawing Tools</h2>
+                    <div class="tools-grid">
+                        <button id="tool-pencil" class="tool-btn active" data-tool="pencil" title="Pencil (P)">
+                            <i data-lucide="pencil"></i>
+                            <span>Pencil</span>
+                        </button>
+                        <button id="tool-eraser" class="tool-btn" data-tool="eraser" title="Eraser (E)">
+                            <i data-lucide="eraser"></i>
+                            <span>Eraser</span>
+                        </button>
+                        <button id="tool-bucket" class="tool-btn" data-tool="bucket" title="Paint Bucket (B)">
+                            <i data-lucide="paint-bucket"></i>
+                            <span>Bucket</span>
+                        </button>
+                        <button id="tool-picker" class="tool-btn" data-tool="picker" title="Color Picker (I)">
+                            <i data-lucide="pipette"></i>
+                            <span>Picker</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="section-title">Canvas Actions</h2>
+                    <div class="actions-list">
+                        <button id="btn-undo" class="action-btn disabled" title="Undo (Ctrl+Z)" disabled>
+                            <i data-lucide="undo-2"></i>
+                            <span>Undo</span>
+                        </button>
+                        <button id="btn-redo" class="action-btn disabled" title="Redo (Ctrl+Y)" disabled>
+                            <i data-lucide="redo-2"></i>
+                            <span>Redo</span>
+                        </button>
+                        <button id="btn-toggle-grid" class="action-btn active" title="Toggle Grid Lines (G)">
+                            <i data-lucide="grid-3x3"></i>
+                            <span>Grid Lines</span>
+                        </button>
+                        <button id="btn-clear" class="action-btn danger" title="Clear Canvas (C)">
+                            <i data-lucide="trash-2"></i>
+                            <span>Clear All</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center Viewport: Canvas -->
+            <section class="canvas-viewport">
+                <div class="canvas-card">
+                    <div class="canvas-wrapper" id="canvas-wrapper">
+                        <!-- We use canvas for high performance, sharp rendering, and perfect export -->
+                        <canvas id="pixel-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="canvas-status">
+                    <div class="status-coord">
+                        <i data-lucide="mouse-pointer-click"></i>
+                        <span id="coord-display">X: - , Y: -</span>
+                    </div>
+                    <div class="status-zoom">
+                        <span id="canvas-size-info">16 x 16 Pixels</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Sidebar: Colors & Palettes -->
+            <aside class="sidebar colors-panel">
+                <div class="panel-section">
+                    <h2 class="section-title">Active Color</h2>
+                    <div class="color-picker-wrapper">
+                        <div class="picker-container">
+                            <input type="color" id="color-picker" value="#ff4757">
+                            <div class="color-preview" id="color-preview" style="background-color: #ff4757;"></div>
+                        </div>
+                        <div class="color-values">
+                            <div class="hex-label">HEX Code</div>
+                            <input type="text" id="hex-input" class="hex-textbox" value="#ff4757" spellcheck="false">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Color Palette</h2>
+                        <select id="palette-selector" class="palette-dropdown">
+                            <option value="pico8">PICO-8 Classic</option>
+                            <option value="nes">NES Retro</option>
+                            <option value="gameboy">Game Boy Retro</option>
+                            <option value="vaporwave">Vaporwave Synth</option>
+                            <option value="autumn">Autumn Forest</option>
+                        </select>
+                    </div>
+                    <div class="palette-grid" id="palette-grid">
+                        <!-- Dynmically loaded via JS -->
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="section-title">Recent Colors</h2>
+                    <div class="recent-colors-grid" id="recent-colors-grid">
+                        <!-- Dynamically filled on color select -->
+                    </div>
+                </div>
+
+                <div class="panel-section export-section">
+                    <h2 class="section-title">File Export</h2>
+                    <div class="export-options">
+                        <div class="scale-slider-group">
+                            <div class="slider-header">
+                                <span>Export Size:</span>
+                                <span id="export-size-preview">512x512 px</span>
+                            </div>
+                            <input type="range" id="export-scale-slider" min="1" max="64" value="32" class="scale-slider">
+                            <div class="slider-footer">
+                                <span>Crisp Scaling:</span>
+                                <span id="scale-factor-text">32x</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button id="btn-export-png" class="btn-primary">
+                                <i data-lucide="download"></i>
+                                <span>Export PNG</span>
+                            </button>
+                            <div class="export-row">
+                                <button id="btn-save-local" class="btn-secondary" title="Save draft to browser storage">
+                                    <i data-lucide="save"></i>
+                                    <span>Save Draft</span>
+                                </button>
+                                <button id="btn-load-local" class="btn-secondary" title="Load last saved draft">
+                                    <i data-lucide="folder-open"></i>
+                                    <span>Load Draft</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Keyboard Shortcuts Modal -->
+        <div class="modal-backdrop" id="shortcuts-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3><i data-lucide="keyboard"></i> Keyboard Shortcuts</h3>
+                    <button class="modal-close-btn" id="btn-modal-close">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="shortcut-item">
+                        <kbd>P</kbd>
+                        <span>Pencil Tool</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>E</kbd>
+                        <span>Eraser Tool</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>B</kbd>
+                        <span>Paint Bucket (Fill) Tool</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>I</kbd>
+                        <span>Color Picker (Eyedropper) Tool</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>G</kbd>
+                        <span>Toggle Grid Lines</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>C</kbd>
+                        <span>Clear Whole Canvas</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>Z</kbd>
+                        <span>Undo Last Action</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>Y</kbd>
+                        <span>Redo Action</span>
+                    </div>
+                    <div class="shortcut-item-notes">
+                        <p><strong>Pro-Tip:</strong> Hold down the left-mouse button and drag across the canvas to paint continuously. Right-click and drag to erase seamlessly!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
